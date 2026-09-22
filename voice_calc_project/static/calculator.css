@@ -1,0 +1,46 @@
+:root {
+  color-scheme: dark;
+  --bg: #202121; --surface: #353636; --number: #363838; --science: #494758;
+  --operator: #494758; --clear: #48408b; --equals: #f2bfd1; --text: #f3f0f4;
+  --muted: #a8a6ab; --line: #444345;
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #faf8fc; --surface: #e7e3e9; --number: #e7e5e8; --science: #d8d4e5;
+  --operator: #cbc4dd; --clear: #655caa; --equals: #df9eb8; --text: #24212a;
+  --muted: #6a6570; --line: #d7d2da;
+}
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+button { font: inherit; cursor: pointer; }
+.calculator-shell { width: min(100%, 540px); min-height: 100dvh; margin: 0 auto; padding: max(18px, env(safe-area-inset-top)) 8px max(20px, env(safe-area-inset-bottom)); display: flex; flex-direction: column; }
+.calc-top { display: flex; align-items: center; justify-content: space-between; padding: 0 20px; min-height: 68px; }
+.history-icon { background: var(--science); color: var(--text); border-radius: 50%; width: 56px; height: 56px; display: grid; place-items: center; font-size: 36px; text-decoration: none; line-height: 1; }
+.brand { font-weight: 700; font-size: 12px; letter-spacing: .22em; color: var(--muted); }
+.brand span { color: var(--equals); }
+.menu { position: relative; z-index: 3; }
+.menu summary { list-style: none; cursor: pointer; font-size: 29px; line-height: 1; padding: 10px; }
+.menu summary::-webkit-details-marker { display: none; }
+.menu-panel { position: absolute; right: 0; top: 54px; width: min(310px, calc(100vw - 36px)); padding: 12px; border-radius: 28px; background: var(--surface); box-shadow: 0 16px 44px #0007; }
+.menu-panel a, .menu-panel button { width: 100%; display: block; text-align: left; padding: 13px 15px; background: none; border: none; color: var(--text); text-decoration: none; font-size: 17px; border-radius: 12px; }
+.menu-panel a:hover, .menu-panel button:hover { background: var(--science); }
+.menu-panel form { margin: 0; }
+.calc-display { min-height: 140px; flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-end; overflow: hidden; padding: 18px 22px; }
+.display-label { align-self: flex-start; margin: 0 auto auto 0; color: var(--muted); font-size: 15px; }
+.expression { width: 100%; text-align: right; font-weight: 300; font-size: clamp(36px, 10vw, 64px); overflow-x: auto; white-space: nowrap; scrollbar-width: thin; }
+.result { min-height: 35px; color: var(--equals); font-size: 23px; }
+.display-footer { min-height: 34px; padding: 0 22px; display: flex; justify-content: space-between; gap: 10px; color: var(--muted); font-size: 12px; letter-spacing: .08em; }
+#status { text-align: right; letter-spacing: 0; }
+.voice-btn { align-self: flex-end; background: var(--surface); border: none; color: var(--text); border-radius: 24px; padding: 9px 16px; margin: 3px 12px 12px; font-size: 14px; }
+.voice-btn.listening { background: var(--clear); }
+.keypad { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.key { height: clamp(40px, 6.25dvh, 62px); min-width: 0; border: 0; border-radius: 999px; color: var(--text); background: var(--number); font-size: clamp(22px, 5vw, 30px); font-weight: 400; transition: filter .12s, transform .12s; }
+.key:hover { filter: brightness(1.16); }
+.key:active { transform: scale(.95); }
+.key:focus-visible, .voice-btn:focus-visible, .menu summary:focus-visible, a:focus-visible { outline: 2px solid var(--equals); outline-offset: 2px; }
+.key.science, .key.operator { background: var(--science); font-size: clamp(20px, 4.5vw, 27px); }
+.key.clear { background: var(--clear); }
+.key.equals { background: var(--equals); color: #292028; }
+@media (min-width: 700px) { .calculator-shell { min-height: min(940px, 100dvh); padding: 22px 14px; } .key { height: clamp(44px, 6.25dvh, 62px); } }
+@media (max-height: 690px) { .calc-display { min-height: 130px; } .key { height: clamp(40px, 8.1dvh, 55px); } .voice-btn { margin-bottom: 5px; } }

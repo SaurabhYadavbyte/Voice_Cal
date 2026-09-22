@@ -1,42 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Voice Calculator</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <div class="modern-card">
-        <h2>Welcome Back</h2>
-        <p class="subtitle">Sign in to access your calculator history.</p>
-
-        {% if request.args.get('session_expired') == '1' %}
-          <div class="flash danger" role="alert">Your form expired. Please try again. If this keeps happening, enable cookies for this site.</div>
-        {% endif %}
-
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            {% for category, message in messages %}
-              <div class="flash {{ category }}" role="alert">{{ message }}</div>
-            {% endfor %}
-          {% endif %}
-        {% endwith %}
-
-        <form method="POST">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input id="username" type="text" name="username" class="form-input" placeholder="Enter your username" autocomplete="username" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input id="password" type="password" name="password" class="form-input" maxlength="128" placeholder="Enter your password" autocomplete="current-password" required>
-            </div>
-            <button type="submit" class="btn btn-primary full-width">Sign In</button>
-        </form>
-
-        <p class="link-text">Don't have an account? <a href="{{ url_for('register') }}">Create one</a></p>
-    </div>
-</body>
-</html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sign in · VoiceCalc</title><link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}"></head>
+<body><main class="modern-card"><div class="auth-mark">✦</div><h1>Welcome back</h1><p class="subtitle">Pick up where you left off.</p>
+{% if request.args.get('session_expired') == '1' %}<div class="flash danger" role="alert">Your form expired. Please try again. If this keeps happening, enable cookies for this site.</div>{% endif %}
+{% with messages = get_flashed_messages(with_categories=true) %}{% for category,message in messages %}<div class="flash {{ category }}" role="alert">{{ message }}</div>{% endfor %}{% endwith %}
+<form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<div class="form-group"><label for="username">Username</label><input class="form-input" id="username" name="username" autocomplete="username" maxlength="50" required></div>
+<div class="form-group"><label for="password">Password</label><input class="form-input" id="password" name="password" type="password" autocomplete="current-password" maxlength="128" required></div>
+<button class="btn btn-primary full-width" type="submit">Sign in</button></form>
+<p class="link-text">New here? <a href="{{ url_for('register') }}">Create account</a></p></main></body></html>

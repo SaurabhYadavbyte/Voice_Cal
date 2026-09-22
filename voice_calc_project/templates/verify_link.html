@@ -1,0 +1,7 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Confirm email · VoiceCalc</title><link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}"></head>
+<body><main class="modern-card"><div class="auth-mark">✦</div>
+{% if valid %}<h1>Confirm email</h1><p class="subtitle">Confirm {{ email }} to activate your account.</p>
+<form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-primary full-width" type="submit">Confirm email</button></form>
+{% else %}<h1>Link unavailable</h1><p class="subtitle">This link has expired or was already used. Sign in to request another one.</p><a class="btn btn-primary full-width" href="{{ url_for('login') }}">Sign in</a>{% endif %}
+</main></body></html>

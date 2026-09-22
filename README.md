@@ -1,55 +1,55 @@
 # Voice Calculator
 
-A Flask voice and keypad calculator with accounts and personal calculation history. Data is stored in a local SQLite file; no Supabase service is needed.
+A Flask voice and keypad calculator with SQLite accounts, email verification, and personal history.
 
 ## Run locally
 
-Use Python 3.10 or newer:
+Use Python 3.10 or newer. From `voice_calc_project`:
 
 ```bash
-cd voice_calc_project
 python -m venv .venv
-# On Windows: .venv\Scripts\activate
-# On macOS/Linux: source .venv/bin/activate
+# Windows: .venv\Scripts\activate
+# Linux/macOS: source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
 python -c "import secrets; print(secrets.token_hex(32))"
 ```
 
-Paste the generated value after `SECRET_KEY=` in `.env`. On Windows, copy the file with `copy .env.example .env`.
+Paste the generated value into `SECRET_KEY=` in `.env`. On Windows, copy with `copy .env.example .env`. Set `SESSION_COOKIE_SECURE=0` **only for local HTTP development**. Configure SMTP and `PUBLIC_BASE_URL` if you want to test signup locally over HTTPS. The website continues serving legacy accounts without email until SMTP is configured; new signups require working mail.
 
 ```bash
 python setup_db.py
 python app.py
 ```
 
-Open http://127.0.0.1:5000. The SQLite database is created in `voice_calc_project/instance/` unless `SQLITE_DB_PATH` is set to an absolute path. Keep `.env` and the database private and backed up.
+The SQLite database is created under `instance/` unless `SQLITE_DB_PATH` is set. Back up this file and keep it and `.env` private. `setup_db.py` is an additive database migration; run it after every update. It preserves existing accounts and calculation history.
 
 ## Deploy on PythonAnywhere
 
-1. Clone this repository in a PythonAnywhere Bash console. Open `voice_calc_project` in the cloned directory.
-2. Create a virtual environment using the Python version selected for the web app, then run `pip install -r requirements.txt` in that environment.
-3. Copy `.env.example` to `.env` and set a fresh, random `SECRET_KEY`. Set `SQLITE_DB_PATH` there if you want the database somewhere else; choose a writable absolute path outside the repository if you plan to replace the checkout.
-4. Run `python setup_db.py` once in that environment.
-5. In the **Web** tab, create a **Manual configuration** web app with the same Python version. Set its virtual environment to the one above.
-6. Edit the web app's WSGI file (replace the username and repository directory with yours):
+1. Clone the repository to `/home/Voicecalc/voice-calculator`, create a virtual environment matching the Python version in the Web tab, and install `requirements.txt`.
+2. In `voice_calc_project/.env`, keep the existing `SECRET_KEY` unchanged. Add:
+   ```text
+   PUBLIC_BASE_URL=https://voicecalc.pythonanywhere.com
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_USERNAME=your_gmail_address@gmail.com
+   SMTP_PASSWORD=your_google_app_password
+   ```
+   Use a [Google app password](https://support.google.com/accounts/answer/185833) after enabling two-step verification. Keep it in `.env`, not in Git, screenshots, or chat. PythonAnywhere [documents Gmail SMTP for free accounts](https://helpdev.pythonanywhere.com/pages/SMTPForFreeUsers/). SMTP failures are reported on the verification page and in the PythonAnywhere error log.
+3. Run `python setup_db.py` in the activated virtual environment. The migration adds email and verification tables while retaining old users and history. Existing users without email must add and verify one at their next login after SMTP is configured.
+4. In the Web tab, use Manual configuration with the same virtual environment. WSGI should import:
+   ```python
+   import sys
+   project_dir = "/home/Voicecalc/voice-calculator/voice_calc_project"
+   if project_dir not in sys.path:
+       sys.path.insert(0, project_dir)
+   from app import app as application
+   ```
+   Map `/static/` to `/home/Voicecalc/voice-calculator/voice_calc_project/static`. Reload the web app.
+5. To deploy updates, run `cd ~/voice-calculator && git pull --ff-only`, activate the virtual environment, run `python setup_db.py`, then click **Reload** in the Web tab. Test signup with an email you own, click the verification link, then sign in.
 
-```python
-import sys
-project_dir = "/home/yourusername/voice-calculator/voice_calc_project"
-if project_dir not in sys.path:
-    sys.path.insert(0, project_dir)
-from app import app as application
-```
-
-7. Set the Web tab static files mapping `/static/` to `/home/yourusername/voice-calculator/voice_calc_project/static`, then reload the web app.
-
-To deploy later code changes, run `cd ~/voice-calculator && git pull --ff-only` in a PythonAnywhere Bash console, install any changed requirements in the virtual environment, and click **Reload** on the Web tab. The local `.env` and SQLite database are ignored by Git and remain on PythonAnywhere.
-
-Do not start `app.py` as a background process for the website; PythonAnywhere imports `app` through WSGI. Browser voice input requires a browser with Web Speech recognition and microphone permission. The keypad works without voice support.
-
-Existing Supabase data is not automatically copied into the new SQLite database. If you need old accounts or calculations, export and migrate them before deleting the old Supabase project. Rotate the old Supabase database password because it was previously embedded in source code.
+Do not change `SECRET_KEY` on every deploy; that invalidates sessions. Use HTTPS in production; secure cookies are enabled by default. Browser voice input needs Web Speech recognition and microphone permission. Calculation history belongs to the signed-in user and is limited to the most recent 100 entries on display.
 
 ## Tests
 
-From `voice_calc_project`, run `python -m unittest discover -s tests -v`.
+From `voice_calc_project`, run `python -m unittest discover -s tests -v`. Tests mock SMTP; no real email is sent.

@@ -1,0 +1,6 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Privacy · VoiceCalc</title><link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}"><script src="{{ url_for('static',filename='theme.js') }}" defer></script></head>
+<body><main class="modern-card info"><a href="{{ url_for('calculator') }}">← Calculator</a><h1>Privacy</h1>
+<p>VoiceCalc stores your username, email, password hash, and calculation history in its SQLite database. Verification links expire after 30 minutes. Verification token hashes and email send timestamps are stored to manage verification and prevent abuse.</p>
+<p>Voice recognition runs through your browser's speech recognition feature. Its availability and handling of audio depend on your browser. VoiceCalc receives the recognized math expression, then saves the calculation in your history.</p>
+<p>History is private to your account. You can delete your saved calculations in History. Your selected theme is stored in your browser.</p></main></body></html>

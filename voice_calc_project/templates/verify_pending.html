@@ -1,0 +1,13 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Verify email · VoiceCalc</title><link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}"></head>
+<body><main class="modern-card"><div class="auth-mark">✦</div><h1>Verify your email</h1>
+{% if request.args.get('session_expired') == '1' %}<div class="flash danger" role="alert">Your form expired. Please try again. If this keeps happening, enable cookies for this site.</div>{% endif %}
+{% with messages = get_flashed_messages(with_categories=true) %}{% for category,message in messages %}<div class="flash {{ category }}" role="alert">{{ message }}</div>{% endfor %}{% endwith %}
+{% if email %}<p class="subtitle">We sent a confirmation link to {{ email }}. Open it and confirm within 30 minutes.</p>
+<form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="resend"><button class="btn btn-primary full-width" type="submit">Resend verification email</button></form>
+<p class="subtitle small">Need to change your email? Enter a new address below.</p>
+{% else %}<p class="subtitle">Your existing account needs an email address. Add one to continue.</p>{% endif %}
+<form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="set_email">
+<div class="form-group"><label for="email">Email address</label><input class="form-input" type="email" name="email" id="email" maxlength="254" autocomplete="email" required></div>
+<button class="btn btn-outline full-width" type="submit">{{ 'Change email' if email else 'Send verification link' }}</button></form>
+<p class="link-text"><a href="{{ url_for('login') }}">Back to sign in</a></p></main></body></html>
