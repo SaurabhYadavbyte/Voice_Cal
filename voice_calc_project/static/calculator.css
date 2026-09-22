@@ -11,6 +11,7 @@
   --muted: #6a6570; --line: #d7d2da;
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html { background: var(--bg); }
 body { margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
 button { font: inherit; cursor: pointer; }
@@ -32,15 +33,23 @@ button { font: inherit; cursor: pointer; }
 .result { min-height: 35px; color: var(--equals); font-size: 23px; }
 .display-footer { min-height: 34px; padding: 0 22px; display: flex; justify-content: space-between; gap: 10px; color: var(--muted); font-size: 12px; letter-spacing: .08em; }
 #status { text-align: right; letter-spacing: 0; }
-.voice-btn { align-self: flex-end; background: var(--surface); border: none; color: var(--text); border-radius: 24px; padding: 9px 16px; margin: 3px 12px 12px; font-size: 14px; }
+.keyboards { width: 100%; }
+.science-toggle { width: 64px; height: 50px; padding: 2px; margin: 0 0 7px 8px; border: 0; background: transparent; color: var(--muted); display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 30px; line-height: .48; }
+.science-toggle .chevrons { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.science-toggle:hover { color: var(--text); }
+.science-open .science-toggle { color: var(--equals); height: 40px; margin-bottom: 5px; }
+.science-open .voice-btn { min-height: 48px; margin-top: 6px; }
+.science-open .calc-display { min-height: 100px; padding-top: 8px; padding-bottom: 8px; }
+.advanced-keys, .keypad { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.advanced-keys { margin-bottom: 8px; }
+.voice-btn { width: 100%; min-height: 52px; margin-top: 12px; border: none; border-radius: 22px; background: var(--surface); color: var(--text); display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 17px; font-weight: 500; }
 .voice-btn.listening { background: var(--clear); }
-.keypad { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .key { height: clamp(40px, 6.25dvh, 62px); min-width: 0; border: 0; border-radius: 999px; color: var(--text); background: var(--number); font-size: clamp(22px, 5vw, 30px); font-weight: 400; transition: filter .12s, transform .12s; }
 .key:hover { filter: brightness(1.16); }
 .key:active { transform: scale(.95); }
-.key:focus-visible, .voice-btn:focus-visible, .menu summary:focus-visible, a:focus-visible { outline: 2px solid var(--equals); outline-offset: 2px; }
+.key:focus-visible, .voice-btn:focus-visible, .science-toggle:focus-visible, .menu summary:focus-visible, a:focus-visible { outline: 2px solid var(--equals); outline-offset: 2px; }
 .key.science, .key.operator { background: var(--science); font-size: clamp(20px, 4.5vw, 27px); }
 .key.clear { background: var(--clear); }
 .key.equals { background: var(--equals); color: #292028; }
 @media (min-width: 700px) { .calculator-shell { min-height: min(940px, 100dvh); padding: 22px 14px; } .key { height: clamp(44px, 6.25dvh, 62px); } }
-@media (max-height: 690px) { .calc-display { min-height: 130px; } .key { height: clamp(40px, 8.1dvh, 55px); } .voice-btn { margin-bottom: 5px; } }
+@media (max-height: 690px) { .calc-display { min-height: 130px; } .key { height: clamp(40px, 8.1dvh, 55px); } .voice-btn { margin-top: 7px; } .science-toggle { height: 40px; } }

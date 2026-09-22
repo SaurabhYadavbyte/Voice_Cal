@@ -550,18 +550,6 @@ def clear_history():
     return redirect(url_for("history"))
 
 
-@app.route("/help")
-@login_required
-def help_page():
-    return render_template("help.html")
-
-
-@app.route("/privacy")
-@login_required
-def privacy():
-    return render_template("privacy.html")
-
-
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     app.run(debug=os.environ.get("FLASK_DEBUG") == "1")

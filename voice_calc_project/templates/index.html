@@ -10,17 +10,14 @@
 <body class="calculator-page">
   <main class="calculator-shell" data-calculate-url="{{ url_for('calculate') }}">
     <header class="calc-top">
-      <a class="history-icon" href="{{ url_for('history') }}" aria-label="Calculation history" title="History">◴</a>
+      <a class="history-icon" href="{{ url_for('history') }}" aria-label="Calculation history" title="History"><svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 2.6-6.4"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg></a>
       <span class="brand">VOICE<span>CALC</span></span>
       <details class="menu">
         <summary aria-label="Open menu" title="Menu">⋮</summary>
         <div class="menu-panel">
           <a href="{{ url_for('history') }}">◴ &nbsp; History</a>
-          <a href="{{ url_for('history') }}#clear-history">⌫ &nbsp; Clear history</a>
-          <button type="button" id="theme-switch">◐ &nbsp; Choose theme</button>
-          <a href="{{ url_for('privacy') }}">◇ &nbsp; Privacy policy</a>
+          <button type="button" id="theme-switch">◐ &nbsp; Change theme</button>
           <a href="https://github.com/SaurabhYadavbyte/Voice_Cal/issues" rel="noopener noreferrer" target="_blank">✉ &nbsp; Send feedback</a>
-          <a href="{{ url_for('help_page') }}">? &nbsp; Help</a>
           <form action="{{ url_for('logout') }}" method="post">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit">↪ &nbsp; Sign out</button>
@@ -35,21 +32,23 @@
       <div id="result" class="result" aria-live="polite"></div>
     </section>
     <div class="display-footer"><span id="mode-indicator">DEGREES</span><span id="status" role="status" aria-live="polite"></span></div>
-    <button id="voice-btn" class="voice-btn" type="button" aria-label="Start voice input"><span aria-hidden="true">🎙</span> Speak an expression</button>
-
-    <section class="keypad" aria-label="Calculator keypad">
-      <button class="key science" data-value="sqrt(">√</button>
-      <button class="key science" data-value="pi">π</button>
-      <button class="key science" data-value="^">^</button>
-      <button class="key science" data-action="factorial">!</button>
-      <button class="key science" data-action="angle" id="angle-btn">Deg</button>
-      <button class="key science" data-value="sin(" data-inverse="asin(">sin</button>
-      <button class="key science" data-value="cos(" data-inverse="acos(">cos</button>
-      <button class="key science" data-value="tan(" data-inverse="atan(">tan</button>
-      <button class="key science" data-action="inverse" id="inverse-btn">Inv</button>
-      <button class="key science" data-value="e">e</button>
-      <button class="key science" data-value="ln(">ln</button>
-      <button class="key science" data-value="log(">log</button>
+    <div class="keyboards">
+      <button id="science-toggle" class="science-toggle" type="button" aria-label="Show advanced keys" aria-expanded="false" aria-controls="advanced-keys" title="Advanced keys"><span class="chevrons" aria-hidden="true"><svg viewBox="0 0 24 12" width="24" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3l8 7 8-7"/></svg><svg viewBox="0 0 24 12" width="24" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9l8-7 8 7"/></svg></span></button>
+      <section class="advanced-keys" id="advanced-keys" aria-label="Advanced calculator keys" hidden>
+        <button class="key science" data-value="sqrt(">√</button>
+        <button class="key science" data-value="pi">π</button>
+        <button class="key science" data-value="^">^</button>
+        <button class="key science" data-action="factorial">!</button>
+        <button class="key science" data-action="angle" id="angle-btn">Deg</button>
+        <button class="key science" data-value="sin(" data-inverse="asin(">sin</button>
+        <button class="key science" data-value="cos(" data-inverse="acos(">cos</button>
+        <button class="key science" data-value="tan(" data-inverse="atan(">tan</button>
+        <button class="key science" data-action="inverse" id="inverse-btn">Inv</button>
+        <button class="key science" data-value="e">e</button>
+        <button class="key science" data-value="ln(">ln</button>
+        <button class="key science" data-value="log(">log</button>
+      </section>
+      <section class="keypad" aria-label="Calculator keypad">
       <button class="key clear" data-action="clear">AC</button>
       <button class="key science" data-action="parenthesis">( )</button>
       <button class="key science" data-value="%">%</button>
@@ -70,7 +69,9 @@
       <button class="key number" data-value=".">.</button>
       <button class="key number" data-action="backspace" aria-label="Delete last character">⌫</button>
       <button class="key equals" data-action="equals">=</button>
-    </section>
+      </section>
+    </div>
+    <button id="voice-btn" class="voice-btn" type="button" aria-label="Tap to Speak"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/></svg><span id="voice-label">Tap to Speak</span></button>
   </main>
 </body>
 </html>

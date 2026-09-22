@@ -60,9 +60,18 @@ async function calculate() {
     message("Connection error. Try again.");
   } finally { calculating = false; }
 }
-document.querySelector(".keypad").addEventListener("click", (event) => {
+document.querySelector(".keyboards").addEventListener("click", (event) => {
   const button = event.target.closest("button");
   if (!button) return;
+  if (button.id === "science-toggle") {
+    const advanced = document.getElementById("advanced-keys");
+    advanced.hidden = !advanced.hidden;
+    const expanded = !advanced.hidden;
+    button.setAttribute("aria-expanded", String(expanded));
+    button.setAttribute("aria-label", expanded ? "Hide advanced keys" : "Show advanced keys");
+    shell.classList.toggle("science-open", expanded);
+    return;
+  }
   const action = button.dataset.action;
   if (action === "clear") { expression = ""; resultEl.textContent = ""; message("Cleared"); render(); }
   else if (action === "backspace") { expression = expression.slice(0, -1); resultEl.textContent = ""; render(); }
@@ -124,6 +133,7 @@ themeSwitch.addEventListener("click", () => {
   document.querySelector(".menu").open = false;
 });
 const voiceButton = document.getElementById("voice-btn");
+const voiceLabel = document.getElementById("voice-label");
 voiceButton.addEventListener("click", () => {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) { message("Voice input is unavailable here. Use the keypad."); return; }
@@ -131,8 +141,8 @@ voiceButton.addEventListener("click", () => {
   recognition.lang = "en-US";
   recognition.interimResults = false;
   recognition.maxAlternatives = 1;
-  recognition.onstart = () => { voiceButton.classList.add("listening"); message("Listening…"); };
-  recognition.onend = () => { voiceButton.classList.remove("listening"); };
+  recognition.onstart = () => { voiceButton.classList.add("listening"); voiceLabel.textContent = "Listening…"; voiceButton.setAttribute("aria-label", "Listening"); message("Listening…"); };
+  recognition.onend = () => { voiceButton.classList.remove("listening"); voiceLabel.textContent = "Tap to Speak"; voiceButton.setAttribute("aria-label", "Tap to Speak"); };
   recognition.onerror = () => { message("Voice input failed. Please try again."); };
   recognition.onresult = (event) => {
     let speech = event.results[0][0].transcript.toLowerCase().trim();
