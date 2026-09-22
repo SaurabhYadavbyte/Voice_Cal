@@ -70,14 +70,70 @@ class CalculatorTests(unittest.TestCase):
 
     def test_auth_and_csrf(self):
         self.assertEqual(self.client.get("/calculator").status_code, 302)
-        self.assertEqual(self.client.post("/register", data={"username": "bad"}).status_code, 400)
+        response = self.client.post("/register", data={"username": "bad"})
+        self.assertEqual(response.status_code, 303)
+        self.assertIn(b"Your form expired", self.client.get(response.location).data)
         self.register()
         self.login()
-        self.assertEqual(self.client.post("/calculate", json={"expression": "1+1"}).status_code, 400)
+        response = self.client.post("/calculate", json={"expression": "1+1"})
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Refresh the page", response.json["error"])
         self.assertEqual(
             self.client.post("/logout", data={"csrf_token": self.token()}).status_code, 302
         )
         self.assertEqual(self.client.get("/history").status_code, 302)
+
+    def test_stale_login_form_recovers_without_repeating_post(self):
+        response = self.client.get("/login")
+        self.assertEqual(response.headers["Cache-Control"], "no-store, private")
+        old_token = self.token()
+        with self.client.session_transaction() as session:
+            session.clear()
+        response = self.client.post(
+            "/login", data={"username": "alice", "password": "password123", "csrf_token": old_token}
+        )
+        self.assertEqual(response.status_code, 303)
+        self.assertIn("/login?session_expired=1", response.location)
+        self.assertIn(b"enable cookies", self.client.get(response.location).data)
+        self.assertNotEqual(self.token(), old_token)
+
+    def test_input_validation_and_database_failure(self):
+        self.client.get("/register")
+        invalid = self.client.post(
+            "/register", data={"username": "ab", "password": "password123", "csrf_token": self.token()}
+        )
+        self.assertIn(b"Username must be", invalid.data)
+        invalid = self.client.post(
+            "/register", data={"username": "alice", "password": "short", "csrf_token": self.token()}
+        )
+        self.assertIn(b"Password must be", invalid.data)
+        invalid = self.client.post(
+            "/register", data={"username": "alice", "password": "a" * 129, "csrf_token": self.token()}
+        )
+        self.assertIn(b"Password must be", invalid.data)
+        self.client.get("/login")
+        invalid = self.client.post(
+            "/login", data={"username": "", "password": "", "csrf_token": self.token()}
+        )
+        self.assertIn(b"Enter both username and password", invalid.data)
+        self.register()
+        self.login()
+        self.assertEqual(self.calculate("1/0").status_code, 400)
+        self.assertEqual(
+            self.client.post("/calculate", data="not-json", headers={"X-CSRF-Token": self.token()}).status_code,
+            400,
+        )
+        self.client.post("/logout", data={"csrf_token": self.token()})
+        self.client.get("/register")
+        app.config["DATABASE"] = Path(self.temp.name)
+        with self.assertLogs(app.logger, level="ERROR") as logs:
+            response = self.client.post(
+                "/register",
+                data={"username": "new_user", "password": "password123", "csrf_token": self.token()},
+            )
+        self.assertIn("Registration failed", logs.output[0])
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"Could not create account", response.data)
 
     def test_history_is_private(self):
         self.register()

@@ -12,8 +12,9 @@ from decimal import Decimal, DecimalException, localcontext
 from pathlib import Path
 
 from dotenv import load_dotenv
-from flask import Flask, abort, flash, jsonify, redirect, render_template, request, session, url_for
+from flask import Flask, flash, jsonify, redirect, render_template, request, session, url_for
 from flask_login import LoginManager, UserMixin, current_user, login_required, login_user, logout_user
+from werkzeug.exceptions import BadRequest
 from werkzeug.security import check_password_hash, generate_password_hash
 
 
@@ -105,12 +106,37 @@ def csrf_token():
 app.jinja_env.globals["csrf_token"] = csrf_token
 
 
+class CSRFError(BadRequest):
+    description = "The form expired. Reload the page and try again."
+
+
 @app.before_request
 def check_csrf():
     if request.method in {"POST", "PUT", "PATCH", "DELETE"}:
         submitted = request.form.get("csrf_token") or request.headers.get("X-CSRF-Token", "")
-        if not secrets.compare_digest(submitted, session.get("csrf_token", "")) or not submitted:
-            abort(400, description="Invalid form token. Refresh the page and try again.")
+        expected = session.get("csrf_token", "")
+        if not submitted or not secrets.compare_digest(submitted, expected):
+            raise CSRFError()
+
+
+@app.errorhandler(CSRFError)
+def handle_csrf_error(error):
+    if request.endpoint == "calculate" or request.is_json:
+        return jsonify(success=False, error="Session expired. Refresh the page and try again."), 400
+
+    # The old POST must never be retried automatically. Show a new form and token.
+    session.pop("csrf_token", None)
+    target = request.endpoint if request.endpoint in {"login", "register"} else (
+        "history" if request.endpoint == "clear_history" else "calculator"
+    )
+    return redirect(url_for(target, session_expired="1"), code=303)
+
+
+@app.after_request
+def prevent_stale_forms(response):
+    if request.endpoint in {"login", "register", "calculator", "history"} and response.mimetype == "text/html":
+        response.headers["Cache-Control"] = "no-store, private"
+    return response
 
 
 def evaluate(expression):
@@ -173,8 +199,8 @@ def register():
         password = request.form.get("password", "")
         if not 3 <= len(username) <= 50 or not all(c.isalnum() or c in "_-" for c in username):
             flash("Username must be 3–50 letters, numbers, underscores, or hyphens.", "danger")
-        elif len(password) < 8:
-            flash("Password must be at least 8 characters.", "danger")
+        elif not 8 <= len(password) <= 128:
+            flash("Password must be 8–128 characters.", "danger")
         else:
             try:
                 with db_connection() as connection:
@@ -199,19 +225,24 @@ def login():
     if request.method == "POST":
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
-        try:
-            with db_connection() as connection:
-                row = connection.execute(
-                    "SELECT id, username, password_hash FROM users WHERE username = ?", (username,)
-                ).fetchone()
-            if row and check_password_hash(row["password_hash"], password):
-                session.clear()
-                login_user(User(row["id"], row["username"]))
-                return redirect(url_for("calculator"))
+        if not username or not password:
+            flash("Enter both username and password.", "danger")
+        elif len(username) > 50 or len(password) > 128:
             flash("Invalid username or password.", "danger")
-        except sqlite3.Error:
-            app.logger.exception("Login failed")
-            flash("Could not sign in. Please try again.", "danger")
+        else:
+            try:
+                with db_connection() as connection:
+                    row = connection.execute(
+                        "SELECT id, username, password_hash FROM users WHERE username = ?", (username,)
+                    ).fetchone()
+                if row and check_password_hash(row["password_hash"], password):
+                    session.clear()
+                    login_user(User(row["id"], row["username"]))
+                    return redirect(url_for("calculator"))
+                flash("Invalid username or password.", "danger")
+            except sqlite3.Error:
+                app.logger.exception("Login failed")
+                flash("Could not sign in. Please try again.", "danger")
     return render_template("login.html")
 
 

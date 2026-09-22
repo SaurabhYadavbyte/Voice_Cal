@@ -11,10 +11,14 @@
         <h2>Welcome Back</h2>
         <p class="subtitle">Sign in to access your calculator history.</p>
 
+        {% if request.args.get('session_expired') == '1' %}
+          <div class="flash danger" role="alert">Your form expired. Please try again. If this keeps happening, enable cookies for this site.</div>
+        {% endif %}
+
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
             {% for category, message in messages %}
-              <div class="flash {{ category }}">{{ message }}</div>
+              <div class="flash {{ category }}" role="alert">{{ message }}</div>
             {% endfor %}
           {% endif %}
         {% endwith %}
@@ -27,7 +31,7 @@
             </div>
             <div class="form-group">
                 <label for="password">Password</label>
-                <input id="password" type="password" name="password" class="form-input" placeholder="Enter your password" autocomplete="current-password" required>
+                <input id="password" type="password" name="password" class="form-input" maxlength="128" placeholder="Enter your password" autocomplete="current-password" required>
             </div>
             <button type="submit" class="btn btn-primary full-width">Sign In</button>
         </form>

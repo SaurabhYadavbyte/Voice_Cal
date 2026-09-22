@@ -44,6 +44,8 @@ from app import app as application
 
 7. Set the Web tab static files mapping `/static/` to `/home/yourusername/voice-calculator/voice_calc_project/static`, then reload the web app.
 
+To deploy later code changes, run `cd ~/voice-calculator && git pull --ff-only` in a PythonAnywhere Bash console, install any changed requirements in the virtual environment, and click **Reload** on the Web tab. The local `.env` and SQLite database are ignored by Git and remain on PythonAnywhere.
+
 Do not start `app.py` as a background process for the website; PythonAnywhere imports `app` through WSGI. Browser voice input requires a browser with Web Speech recognition and microphone permission. The keypad works without voice support.
 
 Existing Supabase data is not automatically copied into the new SQLite database. If you need old accounts or calculations, export and migrate them before deleting the old Supabase project. Rotate the old Supabase database password because it was previously embedded in source code.
