@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculation History</title>
+    <style>
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 0;
+            color: #334155;
+        }
+        .navbar {
+            background-color: #ffffff;
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .navbar h1 {
+            margin: 0;
+            font-size: 1.25rem;
+            color: #0f172a;
+        }
+        .nav-links a {
+            color: #64748b;
+            text-decoration: none;
+            margin-left: 20px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover {
+            color: #2563eb;
+        }
+        .nav-links { display: flex; align-items: center; gap: 20px; }
+        .nav-links a { margin-left: 0; }
+        .logout-form { margin: 0; }
+        .logout-form button {
+            border: 0;
+            background: none;
+            color: #64748b;
+            font: inherit;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .logout-form button:hover { color: #2563eb; }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 0 20px;
+        }
+        .history-card {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 40px;
+            border: 1px solid #f1f5f9;
+        }
+        .history-header {
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f1f5f9;
+        }
+        .history-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: #0f172a;
+        }
+        .history-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        .expression-box {
+            display: flex;
+            flex-direction: column;
+        }
+        .expression {
+            font-size: 1.1rem;
+            color: #475569;
+        }
+        .result {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #2563eb;
+        }
+        .timestamp {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        .empty-state h3 {
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+        .empty-state p {
+            color: #94a3b8;
+            font-size: 0.95rem;
+        }
+        .btn-back {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #f1f5f9;
+            color: #475569;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn-back:hover {
+            background-color: #e2e8f0;
+            color: #0f172a;
+        }
+        @media (max-width: 600px) {
+            .navbar { padding: 1rem; }
+            .container { margin: 24px auto; }
+            .history-card { padding: 20px; }
+            .history-item { gap: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>Voice Calculator</h1>
+        <div class="nav-links">
+            <a href="{{ url_for('calculator') }}">Calculator</a>
+            <form action="{{ url_for('logout') }}" method="POST" class="logout-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit">Logout</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="history-card">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% for category, message in messages %}
+                <p role="status">{{ message }}</p>
+              {% endfor %}
+            {% endwith %}
+
+            <div class="history-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h2>Calculation History</h2>
+                {% if records %}
+                <form action="{{ url_for('clear_history') }}" method="POST" style="margin: 0;" onsubmit="return confirm('Are you sure you want to permanently delete all your calculations?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" style="background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 500; transition: background 0.2s;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">
+                        Clear All
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+
+            {% if records %}
+            <ul class="history-list">
+                {% for record in records %}
+                <li class="history-item">
+                    <div class="expression-box">
+                        <span class="expression">{{ record.expression }} = </span>
+                        <span class="timestamp">{{ record.created_at.strftime('%B %d, %Y at %I:%M %p') }} UTC</span>
+                    </div>
+                    <div class="result">{{ record.result }}</div>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="empty-state">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 15px;">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <h3>No calculations yet</h3>
+                <p>Your voice and manual calculation history will safely appear here.</p>
+                <a href="{{ url_for('calculator') }}" class="btn-back">Go compute something</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,159 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+    --primary: #2563EB; /* Professional Blue */
+    --primary-hover: #1D4ED8;
+    --bg-main: #F3F4F6; /* Clean light gray */
+    --surface: #ffffff;
+    --text-main: #111827;
+    --text-muted: #6B7280;
+    --border: #E5E7EB;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Base Body (For Login, Register, Calculator) */
+body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+/* Landing Page Body Override */
+body.landing-page {
+    display: block;
+    background-color: #ffffff;
+    padding: 0;
+}
+
+/* --- Global Buttons --- */
+.btn {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    text-decoration: none;
+    border: none;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+}
+
+.btn-primary:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(37, 99, 235, 0.3);
+}
+
+.btn-outline {
+    background: transparent;
+    color: var(--text-main);
+    border: 1px solid var(--border);
+}
+
+.btn-outline:hover {
+    background: var(--bg-main);
+    border-color: #D1D5DB;
+}
+
+.large-btn {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+}
+
+/* --- Landing Page Components --- */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 50px;
+    background: #ffffff;
+    border-bottom: 1px solid var(--border);
+}
+.nav-brand { font-size: 1.5rem; font-weight: 700; color: var(--text-main); }
+.nav-links { display: flex; gap: 15px; align-items: center; }
+
+.hero-section { text-align: center; padding: 80px 20px 60px; background: #ffffff; }
+.hero-section h1 { font-size: 3rem; margin-bottom: 20px; }
+.hero-subtitle { font-size: 1.1rem; color: var(--text-muted); max-width: 600px; margin: 0 auto 30px; line-height: 1.6; }
+.hero-buttons { display: flex; justify-content: center; gap: 15px; }
+
+/* Landing Features & Steps */
+.section-title { text-align: center; font-size: 2.2rem; margin-bottom: 15px; }
+.accent-line { width: 60px; height: 4px; background-color: var(--primary); margin: 0 auto 50px; border-radius: 2px; }
+.features-section, .how-it-works-section { padding: 80px 20px; max-width: 1100px; margin: 0 auto; background: #ffffff;}
+.features-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
+.info-card { background: #ffffff; padding: 40px 30px; border-radius: 16px; border: 1px solid var(--border); text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.02); transition: 0.3s; }
+.info-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+.icon-wrapper { width: 60px; height: 60px; border-radius: 12px; display: flex; justify-content: center; align-items: center; margin: 0 auto 20px; }
+.icon-wrapper span { font-size: 32px; }
+.blue-icon { color: #2563EB; background: #EFF6FF; }
+.green-icon { color: #059669; background: #ECFDF5; }
+.red-icon { color: #DC2626; background: #FEF2F2; }
+
+.steps-container { max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+.step-item { display: flex; align-items: flex-start; gap: 25px; }
+.step-number { background: var(--primary); color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; font-weight: 700; flex-shrink: 0; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3); }
+
+/* --- Modern Card (For Login, Register, Calc) --- */
+.modern-card {
+    background: var(--surface);
+    padding: 2.5rem;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    width: 100%;
+    max-width: 420px;
+    border: 1px solid var(--border);
+    text-align: center;
+}
+
+.modern-card h2 { margin-bottom: 0.5rem; }
+.modern-card p.subtitle { color: var(--text-muted); margin-bottom: 2rem; font-size: 0.95rem; }
+
+/* --- Forms & Inputs --- */
+.form-group { margin-bottom: 1.25rem; text-align: left; }
+.form-group label { display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 600; }
+.form-input {
+    width: 100%; padding: 0.875rem 1rem; border: 1px solid var(--border);
+    border-radius: 8px; font-size: 1rem; transition: 0.2s; outline: none; background: #FAFAFA;
+}
+.form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); background: #ffffff; }
+.full-width { width: 100%; margin-top: 10px; }
+.link-text { margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-muted); }
+.link-text a { color: var(--primary); font-weight: 600; text-decoration: none; }
+.link-text a:hover { text-decoration: underline; }
+
+/* Alerts */
+.flash { padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9rem; font-weight: 500; }
+.flash.danger { background: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA; }
+.flash.success { background: #ECFDF5; color: #047857; border: 1px solid #A7F3D0; }
+
+@media (max-width: 700px) {
+    .navbar { padding: 16px 20px; }
+    .nav-brand { font-size: 1.2rem; }
+    .nav-links { gap: 8px; }
+    .nav-links .btn { padding: 0.6rem 0.8rem; font-size: 0.85rem; }
+    .hero-section { padding: 64px 20px 40px; }
+    .hero-section h1 { font-size: 2.2rem; }
+    .features-section, .how-it-works-section { padding: 48px 20px; }
+    .features-grid-3 { grid-template-columns: 1fr; gap: 16px; }
+    .info-card { padding: 28px 24px; }
+    .modern-card { padding: 2rem 1.5rem; }
+}

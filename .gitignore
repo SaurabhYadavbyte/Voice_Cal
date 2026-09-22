@@ -1,0 +1,18 @@
+# Local Python environments and caches
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Runtime configuration and data
+.env
+*.sqlite3
+*.sqlite3-*
+voice_calc_project/instance/
+
+# Editor and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

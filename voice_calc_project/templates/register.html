@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Voice Calculator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="modern-card">
+        <h2>Create an Account</h2>
+        <p class="subtitle">Join the secure voice calculator platform.</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input id="username" type="text" name="username" class="form-input" placeholder="e.g., student_mumbai" minlength="3" maxlength="50" autocomplete="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input id="password" type="password" name="password" class="form-input" placeholder="At least 8 characters" minlength="8" autocomplete="new-password" required>
+            </div>
+            <button type="submit" class="btn btn-primary full-width">Register Securely</button>
+        </form>
+
+        <p class="link-text">Already have an account? <a href="{{ url_for('login') }}">Log in here</a></p>
+    </div>
+</body>
+</html>
