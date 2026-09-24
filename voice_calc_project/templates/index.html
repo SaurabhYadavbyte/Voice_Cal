@@ -5,7 +5,8 @@
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>Calculator · VoiceCalc</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='calculator.css') }}">
-  <script src="{{ url_for('static', filename='calculator.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='voice-parser.js', v='1') }}" defer></script>
+  <script src="{{ url_for('static', filename='calculator.js', v='3') }}" defer></script>
 </head>
 <body class="calculator-page">
   <main class="calculator-shell" data-calculate-url="{{ url_for('calculate') }}">

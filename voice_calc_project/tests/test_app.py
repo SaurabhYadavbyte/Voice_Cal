@@ -80,6 +80,21 @@ class VoiceCalcTests(unittest.TestCase):
         self.assertEqual(self.post("/clear_history").status_code, 302)
         self.assertNotIn(b"sin(30)", self.client.get("/history").data)
 
+    def test_calculator_loads_scientific_voice_parser_first(self):
+        self.register()
+        self.verify()
+        self.login()
+        response = self.client.get("/calculator")
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn("/static/voice-parser.js", html)
+        self.assertLess(html.index("/static/voice-parser.js"), html.index("/static/calculator.js"))
+        parser = self.client.get("/static/voice-parser.js")
+        self.assertEqual(parser.status_code, 200)
+        parser_data = parser.get_data()
+        parser.close()
+        self.assertIn(b"VoiceCalcSpeech", parser_data)
+
     def test_expiry_resend_and_email_change(self):
         self.register()
         first = self.sender.call_args.args[1]

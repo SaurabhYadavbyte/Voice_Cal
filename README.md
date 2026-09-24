@@ -50,6 +50,25 @@ The SQLite database is created under `instance/` unless `SQLITE_DB_PATH` is set.
 
 Do not change `SECRET_KEY` on every deploy; that invalidates sessions. Use HTTPS in production; secure cookies are enabled by default. Browser voice input needs Web Speech recognition and microphone permission. Calculation history belongs to the signed-in user and is limited to the most recent 100 entries on display.
 
+### Scientific voice examples
+
+Tap **Tap to Speak** and say phrases such as:
+
+- **sine thirty degrees**
+- **square root of eighty one**
+- **five factorial**
+- **two to the power of eight**
+- **log base ten of one hundred**
+- **natural log of e**
+- **open bracket two plus three close bracket times four**
+
+Say **degrees** or **radians** in a trigonometry command to switch the angle mode.
+
 ## Tests
 
-From `voice_calc_project`, run `python -m unittest discover -s tests -v`. Tests mock SMTP; no real email is sent.
+From the voice_calc_project directory, run:
+
+    python -m unittest discover -s tests -v
+    node tests/test_voice_parser.js
+
+The Python tests mock SMTP; no real email is sent.

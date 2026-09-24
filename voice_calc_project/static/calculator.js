@@ -14,6 +14,11 @@ const render = () => {
   expressionEl.scrollLeft = expressionEl.scrollWidth;
 };
 const message = (value) => { statusEl.textContent = value; };
+function setAngleMode(mode) {
+  angleMode = mode;
+  document.getElementById("angle-btn").textContent = mode === "deg" ? "Deg" : "Rad";
+  document.getElementById("mode-indicator").textContent = mode === "deg" ? "DEGREES" : "RADIANS";
+}
 function append(value) {
   const needsMultiply = /(?:[0-9)]|pi|e)$/.test(expression) &&
     (/^(?:sqrt|sin|cos|tan|asin|acos|atan|ln|log|fact)\($/.test(value) || value === "pi" || value === "e" || value === "(");
@@ -100,9 +105,7 @@ document.querySelector(".keyboards").addEventListener("click", (event) => {
     expression = next; resultEl.textContent = ""; message(""); render();
   }
   else if (action === "angle") {
-    angleMode = angleMode === "deg" ? "rad" : "deg";
-    button.textContent = angleMode === "deg" ? "Deg" : "Rad";
-    document.getElementById("mode-indicator").textContent = angleMode === "deg" ? "DEGREES" : "RADIANS";
+    setAngleMode(angleMode === "deg" ? "rad" : "deg");
   } else if (action === "inverse") {
     inverse = !inverse;
     button.setAttribute("aria-pressed", String(inverse));
@@ -138,23 +141,24 @@ voiceButton.addEventListener("click", () => {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) { message("Voice input is unavailable here. Use the keypad."); return; }
   const recognition = new SpeechRecognition();
-  recognition.lang = "en-US";
+  recognition.lang = navigator.language || "en-US";
   recognition.interimResults = false;
   recognition.maxAlternatives = 1;
   recognition.onstart = () => { voiceButton.classList.add("listening"); voiceLabel.textContent = "Listening…"; voiceButton.setAttribute("aria-label", "Listening"); message("Listening…"); };
   recognition.onend = () => { voiceButton.classList.remove("listening"); voiceLabel.textContent = "Tap to Speak"; voiceButton.setAttribute("aria-label", "Tap to Speak"); };
   recognition.onerror = () => { message("Voice input failed. Please try again."); };
   recognition.onresult = (event) => {
-    let speech = event.results[0][0].transcript.toLowerCase().trim();
-    const words = {zero:"0",one:"1",two:"2",three:"3",four:"4",five:"5",six:"6",seven:"7",eight:"8",nine:"9",ten:"10",eleven:"11",twelve:"12",plus:"+",minus:"-",times:"*",over:"/","multiplied by":"*","divided by":"/",percent:"%",point:".",equals:""};
-    speech = speech.replace(/\b(multiplied by|divided by|equals|percent|point|plus|minus|times|over|zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\b/g, (word) => words[word]);
-    if (!/^[0-9+\-*/().%\s]+$/.test(speech) || !speech.trim()) {
-      message("I could not understand a calculation. Please try again.");
-      return;
+    const speech = event.results[0][0].transcript.trim();
+    try {
+      const parsed = window.VoiceCalcSpeech.parse(speech, angleMode);
+      expression = parsed.expression;
+      setAngleMode(parsed.angleMode);
+      resultEl.textContent = "";
+      render();
+      calculate();
+    } catch (error) {
+      message(error instanceof Error ? error.message : "I could not understand the calculation.");
     }
-    expression = speech.replace(/\s+/g, "");
-    render();
-    calculate();
   };
   try { recognition.start(); } catch (_) { message("Microphone could not start."); }
 });
