@@ -37,7 +37,7 @@ function balanced(value) {
 function toBackend(value) {
   return balanced(value.replaceAll("π", "pi").replaceAll("×", "*").replaceAll("÷", "/").replaceAll("%", "/100"));
 }
-async function calculate(fallbackSpeech = "") {
+async function calculate() {
   if (!expression.trim() || calculating) return;
   calculating = true;
   message("Calculating…");
@@ -54,12 +54,7 @@ async function calculate(fallbackSpeech = "") {
     }
     const data = await response.json();
     if (!response.ok || !data.success) {
-      if (fallbackSpeech && response.status === 400 && !String(data.error || "").startsWith("Session expired")) {
-        calculating = false;
-        await calculateAdvancedVoice(fallbackSpeech, data.error);
-      } else {
-        message(data.error || "Could not calculate.");
-      }
+      message(data.error || "Could not calculate.");
       return;
     }
     resultEl.textContent = "= " + data.result;
@@ -68,35 +63,6 @@ async function calculate(fallbackSpeech = "") {
     render();
   } catch (_) {
     message("Connection error. Try again.");
-  } finally { calculating = false; }
-}
-async function calculateAdvancedVoice(speech, fallbackMessage) {
-  if (calculating) return;
-  calculating = true;
-  const spokenMode = /\bradians?\b/i.test(speech) ? "rad" : (/\bdegrees?\b/i.test(speech) ? "deg" : angleMode);
-  message("Understanding advanced calculation…");
-  try {
-    const response = await fetch(shell.dataset.voiceQueryUrl, {
-      method: "POST", credentials: "same-origin",
-      headers: { "Content-Type": "application/json", "X-CSRF-Token": csrf },
-      body: JSON.stringify({ query: speech, angle_mode: spokenMode })
-    });
-    if (response.redirected && response.url.includes("/login")) {
-      message("Session expired. Sign in again.");
-      return;
-    }
-    const data = await response.json();
-    if (!response.ok || !data.success) {
-      message(data.error || fallbackMessage || "I could not understand the calculation.");
-      return;
-    }
-    expression = "";
-    expressionEl.textContent = data.expression;
-    resultEl.textContent = "= " + data.result;
-    setAngleMode(data.angle_mode);
-    message("Calculated with Wolfram|Alpha · Saved to history");
-  } catch (_) {
-    message("Advanced calculation connection error. Try again.");
   } finally { calculating = false; }
 }
 document.querySelector(".keyboards").addEventListener("click", (event) => {
@@ -183,7 +149,6 @@ voiceButton.addEventListener("click", () => {
   recognition.onerror = () => { message("Voice input failed. Please try again."); };
   recognition.onresult = (event) => {
     const alternatives = event.results[0];
-    let speech = alternatives[0].transcript.trim();
     let parserMessage = "I could not understand the calculation.";
     for (let index = 0; index < alternatives.length; index++) {
       const candidate = alternatives[index].transcript.trim();
@@ -212,16 +177,15 @@ voiceButton.addEventListener("click", () => {
         setAngleMode(parsed.angleMode);
         resultEl.textContent = "";
         render();
-        calculate(candidate);
+        calculate();
         return;
       } catch (error) {
         if (index === 0) {
-          speech = candidate;
           parserMessage = error instanceof Error ? error.message : parserMessage;
         }
       }
     }
-    calculateAdvancedVoice(speech, parserMessage);
+    message(parserMessage);
   };
   try { recognition.start(); } catch (_) { message("Microphone could not start."); }
 });
