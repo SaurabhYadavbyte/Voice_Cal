@@ -23,6 +23,7 @@ class VoiceCalcTests(unittest.TestCase):
             "SMTP_HOST": "smtp.gmail.com",
             "SMTP_USERNAME": "sender@example.com",
             "SMTP_PASSWORD": "fake-test-password",
+            "WOLFRAM_APP_ID": "TESTAPP-123456",
         })
         self.env.start()
         self.mail = patch("app.send_verification_email")
@@ -94,6 +95,33 @@ class VoiceCalcTests(unittest.TestCase):
         parser_data = parser.get_data()
         parser.close()
         self.assertIn(b"VoiceCalcSpeech", parser_data)
+
+    def test_advanced_voice_fallback_is_server_side_and_saved(self):
+        self.register()
+        self.verify()
+        self.login()
+        page = self.client.get("/calculator")
+        self.assertIn(b'data-voice-query-url="/voice-query"', page.data)
+        self.assertNotIn(b"TESTAPP-123456", page.data)
+
+        with patch("app.query_wolfram", return_value=("integrate x squared from zero to two", "8/3")) as api:
+            response = self.client.post(
+                "/voice-query",
+                json={"query": "integrate x squared from zero to two", "angle_mode": "deg"},
+                headers={"X-CSRF-Token": self.token()},
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json["result"], "8/3")
+        self.assertEqual(response.json["source"], "wolfram")
+        api.assert_called_once_with("integrate x squared from zero to two", "deg")
+        self.assertIn(b"integrate x squared", self.client.get("/history").data)
+
+        invalid = self.client.post(
+            "/voice-query",
+            json={"query": "sine thirty", "angle_mode": []},
+            headers={"X-CSRF-Token": self.token()},
+        )
+        self.assertEqual(invalid.status_code, 400)
 
     def test_expiry_resend_and_email_change(self):
         self.register()

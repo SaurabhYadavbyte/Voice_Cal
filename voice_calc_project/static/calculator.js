@@ -37,7 +37,7 @@ function balanced(value) {
 function toBackend(value) {
   return balanced(value.replaceAll("π", "pi").replaceAll("×", "*").replaceAll("÷", "/").replaceAll("%", "/100"));
 }
-async function calculate() {
+async function calculate(fallbackSpeech = "") {
   if (!expression.trim() || calculating) return;
   calculating = true;
   message("Calculating…");
@@ -54,7 +54,12 @@ async function calculate() {
     }
     const data = await response.json();
     if (!response.ok || !data.success) {
-      message(data.error || "Could not calculate.");
+      if (fallbackSpeech && response.status === 400 && !String(data.error || "").startsWith("Session expired")) {
+        calculating = false;
+        await calculateAdvancedVoice(fallbackSpeech, data.error);
+      } else {
+        message(data.error || "Could not calculate.");
+      }
       return;
     }
     resultEl.textContent = "= " + data.result;
@@ -63,6 +68,35 @@ async function calculate() {
     render();
   } catch (_) {
     message("Connection error. Try again.");
+  } finally { calculating = false; }
+}
+async function calculateAdvancedVoice(speech, fallbackMessage) {
+  if (calculating) return;
+  calculating = true;
+  const spokenMode = /\bradians?\b/i.test(speech) ? "rad" : (/\bdegrees?\b/i.test(speech) ? "deg" : angleMode);
+  message("Understanding advanced calculation…");
+  try {
+    const response = await fetch(shell.dataset.voiceQueryUrl, {
+      method: "POST", credentials: "same-origin",
+      headers: { "Content-Type": "application/json", "X-CSRF-Token": csrf },
+      body: JSON.stringify({ query: speech, angle_mode: spokenMode })
+    });
+    if (response.redirected && response.url.includes("/login")) {
+      message("Session expired. Sign in again.");
+      return;
+    }
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      message(data.error || fallbackMessage || "I could not understand the calculation.");
+      return;
+    }
+    expression = "";
+    expressionEl.textContent = data.expression;
+    resultEl.textContent = "= " + data.result;
+    setAngleMode(data.angle_mode);
+    message("Calculated with Wolfram|Alpha · Saved to history");
+  } catch (_) {
+    message("Advanced calculation connection error. Try again.");
   } finally { calculating = false; }
 }
 document.querySelector(".keyboards").addEventListener("click", (event) => {
@@ -143,22 +177,51 @@ voiceButton.addEventListener("click", () => {
   const recognition = new SpeechRecognition();
   recognition.lang = navigator.language || "en-US";
   recognition.interimResults = false;
-  recognition.maxAlternatives = 1;
+  recognition.maxAlternatives = 3;
   recognition.onstart = () => { voiceButton.classList.add("listening"); voiceLabel.textContent = "Listening…"; voiceButton.setAttribute("aria-label", "Listening"); message("Listening…"); };
   recognition.onend = () => { voiceButton.classList.remove("listening"); voiceLabel.textContent = "Tap to Speak"; voiceButton.setAttribute("aria-label", "Tap to Speak"); };
   recognition.onerror = () => { message("Voice input failed. Please try again."); };
   recognition.onresult = (event) => {
-    const speech = event.results[0][0].transcript.trim();
-    try {
-      const parsed = window.VoiceCalcSpeech.parse(speech, angleMode);
-      expression = parsed.expression;
-      setAngleMode(parsed.angleMode);
-      resultEl.textContent = "";
-      render();
-      calculate();
-    } catch (error) {
-      message(error instanceof Error ? error.message : "I could not understand the calculation.");
+    const alternatives = event.results[0];
+    let speech = alternatives[0].transcript.trim();
+    let parserMessage = "I could not understand the calculation.";
+    for (let index = 0; index < alternatives.length; index++) {
+      const candidate = alternatives[index].transcript.trim();
+      const voiceCommand = window.VoiceCalcSpeech.command(candidate);
+      if (voiceCommand?.action === "clear") {
+        expression = "";
+        resultEl.textContent = "";
+        render();
+        message("Cleared");
+        return;
+      }
+      if (voiceCommand?.action === "backspace") {
+        if (expression) {
+          expression = expression.slice(0, -1);
+          resultEl.textContent = "";
+          render();
+          message("Deleted last character");
+        } else {
+          message("Nothing to delete");
+        }
+        return;
+      }
+      try {
+        const parsed = window.VoiceCalcSpeech.parse(candidate, angleMode);
+        expression = parsed.expression;
+        setAngleMode(parsed.angleMode);
+        resultEl.textContent = "";
+        render();
+        calculate(candidate);
+        return;
+      } catch (error) {
+        if (index === 0) {
+          speech = candidate;
+          parserMessage = error instanceof Error ? error.message : parserMessage;
+        }
+      }
     }
+    calculateAdvancedVoice(speech, parserMessage);
   };
   try { recognition.start(); } catch (_) { message("Microphone could not start."); }
 });

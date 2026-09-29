@@ -18,6 +18,12 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from calculator import evaluate
 from mailer import mail_configured, send_verification_email
+from wolfram import (
+    WolframError,
+    configured as wolfram_configured,
+    query_wolfram,
+    validate_query as validate_wolfram_query,
+)
 
 BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR / ".env")
@@ -535,6 +541,56 @@ def calculate():
         app.logger.exception("Could not save calculation")
         return jsonify(success=False, error="Could not save calculation. Please try again."), 500
     return jsonify(success=True, result=result, expression=expression.strip())
+
+
+@app.route("/voice-query", methods=["POST"])
+@login_required
+def voice_query():
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify(success=False, error="Send a JSON voice query."), 400
+    try:
+        query_value = validate_wolfram_query(data.get("query"))
+    except WolframError as exc:
+        return jsonify(success=False, error=str(exc)), exc.status_code
+    if not wolfram_configured():
+        return jsonify(success=False, error="Advanced voice calculations are not configured yet."), 503
+
+    angle_mode = data.get("angle_mode", "deg")
+    if not isinstance(angle_mode, str) or angle_mode not in {"deg", "rad"}:
+        return jsonify(success=False, error="Choose degrees or radians."), 400
+
+    user_key = hashlib.sha256(f"wolfram:user:{current_user.id}".encode()).hexdigest()
+    global_key = hashlib.sha256(b"wolfram:global").hexdigest()
+    try:
+        if limit_reached(user_key, 20, 86400) or limit_reached(global_key, 60, 86400):
+            return jsonify(
+                success=False,
+                error="The daily advanced calculation limit has been reached. Try again tomorrow.",
+            ), 429
+        record_attempt(user_key, 86400)
+        record_attempt(global_key, 86400)
+    except sqlite3.Error:
+        app.logger.exception("Advanced calculation rate limit unavailable")
+        return jsonify(success=False, error="Could not start the advanced calculation. Try again."), 503
+
+    try:
+        query, result = query_wolfram(query_value, angle_mode)
+    except WolframError as exc:
+        if exc.status_code >= 500:
+            app.logger.warning("Wolfram query failed: %s", exc)
+        return jsonify(success=False, error=str(exc)), exc.status_code
+
+    try:
+        with db_connection() as connection:
+            connection.execute(
+                "INSERT INTO history (user_id, expression, result) VALUES (?, ?, ?)",
+                (current_user.id, query, result),
+            )
+    except sqlite3.Error:
+        app.logger.exception("Could not save advanced calculation")
+        return jsonify(success=False, error="Could not save calculation. Please try again."), 500
+    return jsonify(success=True, result=result, expression=query, angle_mode=angle_mode, source="wolfram")
 
 
 @app.route("/clear_history", methods=["POST"])

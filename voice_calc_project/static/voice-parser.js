@@ -20,6 +20,9 @@
   const FILLER = new Set(["what", "is", "the", "answer", "calculate", "compute", "please", "of", "equals", "equal"]);
 
   const PHRASES = [
+    [/\b(?:multiply|multiplication)\b/g, " * "],
+    [/\b(?:guna|gunaa)\b/g, " * "],
+    [/\b(?:cross|ex)\b/g, " * "],
     [/\binverse\s+sine\b|\barc\s*sine\b|\barcsine\b/g, " asin "],
     [/\binverse\s+cosine\b|\barc\s*cosine\b|\barccosine\b/g, " acos "],
     [/\binverse\s+tangent\b|\barc\s*tangent\b|\barctangent\b/g, " atan "],
@@ -47,7 +50,9 @@
   ];
 
   function normalizeText(transcript) {
-    let text = transcript.toLowerCase().replace(/[,’]/g, "'").replace(/,/g, "");
+    let text = transcript.toLowerCase().normalize("NFKC").replace(/[,’]/g, "'").replace(/,/g, "");
+    text = text.replace(/[×✕]/g, " times ").replace(/[÷]/g, " divided by ")
+      .replace(/गुणा|गुना/g, " times ").replace(/एक्स/g, " times ");
     for (const [pattern, replacement] of PHRASES) text = text.replace(pattern, replacement);
     return text.replace(/[^a-z0-9.+*/^()%'\s-]/g, " ").replace(/\s+/g, " ").trim();
   }
@@ -131,7 +136,7 @@
         continue;
       }
       const mapped = {
-        "×": "*", "÷": "/", x: "*", percent: "%", percentage: "%",
+        "×": "*", "÷": "/", x: "*", ex: "*", cross: "*", percent: "%", percentage: "%",
         factorial: "fact", pi: "pi", e: "e", point: "."
       }[word] || word;
       if (FUNCTIONS.has(mapped) || ["pi", "e", "+", "-", "*", "/", "^", "%", "(", ")"].includes(mapped)) {
@@ -216,6 +221,21 @@
     return result;
   }
 
+  function command(transcript) {
+    if (typeof transcript !== "string") return null;
+    const text = transcript.normalize("NFKC").toLowerCase()
+      .replace(/[.,!?]/g, " ").replace(/\s+/g, " ").trim();
+    const compact = text.replace(/\s/g, "");
+    if (["ac", "clear", "clearall", "allclear", "reset", "eraseall", "साफकरो", "सब साफ", "सबमिटाओ", "पूरासाफ"].includes(compact) ||
+        ["a c", "clear all", "all clear", "erase all", "clear karo", "sab saaf", "sab delete", "delete all", "साफ करो", "सब साफ", "सब मिटाओ", "पूरा साफ"].includes(text)) {
+      return { action: "clear" };
+    }
+    if (["single cut", "x single cut", "one cut", "cut one", "ek cut", "ek hatao", "pichla hatao", "last hatao", "backspace", "back space", "delete", "delete one", "delete last", "delete last character", "remove last", "remove last character", "undo", "undo last", "एक कट", "पिछला हटाओ", "एक हटाओ"].includes(text)) {
+      return { action: "backspace" };
+    }
+    return null;
+  }
+
   function parse(transcript, currentAngleMode = "deg") {
     if (typeof transcript !== "string" || !transcript.trim()) throw new Error("No calculation was heard.");
     if (transcript.length > 240) throw new Error("The spoken calculation is too long.");
@@ -233,5 +253,5 @@
     return { expression, angleMode };
   }
 
-  return { parse };
+  return { parse, command };
 });

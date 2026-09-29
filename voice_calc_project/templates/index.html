@@ -5,11 +5,11 @@
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>Calculator · VoiceCalc</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='calculator.css') }}">
-  <script src="{{ url_for('static', filename='voice-parser.js', v='1') }}" defer></script>
-  <script src="{{ url_for('static', filename='calculator.js', v='3') }}" defer></script>
+  <script src="{{ url_for('static', filename='voice-parser.js', v='2') }}" defer></script>
+  <script src="{{ url_for('static', filename='calculator.js', v='4') }}" defer></script>
 </head>
 <body class="calculator-page">
-  <main class="calculator-shell" data-calculate-url="{{ url_for('calculate') }}">
+  <main class="calculator-shell" data-calculate-url="{{ url_for('calculate') }}" data-voice-query-url="{{ url_for('voice_query') }}">
     <header class="calc-top">
       <a class="history-icon" href="{{ url_for('history') }}" aria-label="Calculation history" title="History"><svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 2.6-6.4"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg></a>
       <span class="brand">VOICE<span>CALC</span></span>

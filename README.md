@@ -34,6 +34,7 @@ The SQLite database is created under `instance/` unless `SQLITE_DB_PATH` is set.
    SMTP_PORT=587
    SMTP_USERNAME=your_gmail_address@gmail.com
    SMTP_PASSWORD=your_google_app_password
+   WOLFRAM_APP_ID=your_wolfram_app_id
    ```
    Use a [Google app password](https://support.google.com/accounts/answer/185833) after enabling two-step verification. Keep it in `.env`, not in Git, screenshots, or chat. PythonAnywhere [documents Gmail SMTP for free accounts](https://helpdev.pythonanywhere.com/pages/SMTPForFreeUsers/). SMTP failures are reported on the verification page and in the PythonAnywhere error log.
 3. Run `python setup_db.py` in the activated virtual environment. The migration adds email and verification tables while retaining old users and history. Existing users without email must add and verify one at their next login after SMTP is configured.
@@ -63,6 +64,8 @@ Tap **Tap to Speak** and say phrases such as:
 - **open bracket two plus three close bracket times four**
 
 Say **degrees** or **radians** in a trigonometry command to switch the angle mode.
+
+Common phrases are parsed and calculated locally. If the local grammar cannot understand a mathematical phrase, VoiceCalc can use the Wolfram|Alpha Short Answers API as a server-side fallback. Create a free non-commercial AppID in the [Wolfram|Alpha Developer Portal](https://developer.wolframalpha.com/portal/myapps/) and set `WOLFRAM_APP_ID` in `.env`; never put the AppID in JavaScript or commit `.env`. The fallback is limited to authenticated users, mathematical queries, 20 requests per user per day, and 60 requests across the site per day to protect the free API quota.
 
 ## Tests
 
